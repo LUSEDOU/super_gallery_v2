@@ -40,7 +40,7 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
     UploadImageSaveRequest event,
     Emitter<UploadState> emit,
   ) {
-    emit(state.copyWith(status: UploadStatus.saving));
+    emit(state.copyWith(status: UploadStatus.saving, image: event.image));
   }
 
   void _onUploadImageSaved(
@@ -52,7 +52,7 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
       emit(
         state.copyWith(
           status: UploadStatus.success,
-          urls: state.urls..add(state.image),
+          urls: List.of(state.urls)..add(state.image),
         ),
       );
     } catch (_) {

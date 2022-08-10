@@ -32,8 +32,9 @@ class LoginCubit extends Cubit<LoginState> {
     if (!state.status.isValidated) return;
     emit(state.copyWith(status: FormzStatus.submissionInProgress));
     try {
-      await Future<Duration>.delayed(const Duration(milliseconds: 300));
+      await Future<dynamic>.delayed(const Duration(milliseconds: 300));
       emit(state.copyWith(status: FormzStatus.submissionSuccess));
+      await Future<dynamic>.delayed(const Duration(milliseconds: 300));
     } catch (_) {
       emit(state.copyWith(status: FormzStatus.submissionFailure));
     }

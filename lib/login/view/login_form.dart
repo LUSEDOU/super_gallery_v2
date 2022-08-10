@@ -109,9 +109,7 @@ class _LoginButton extends StatelessWidget {
                   primary: const Color(0xFFFFD600),
                 ),
                 onPressed: state.status.isValidated
-                    ? () => context
-                      ..read<LoginCubit>().logIn()
-                      ..read<AppCubit>().authentication()
+                    ? () => context.read<AppCubit>().authentication()
                     : null,
                 child: const Text('LOGIN'),
                 // TODO(lusedou): l10n.loginForm

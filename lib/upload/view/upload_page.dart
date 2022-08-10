@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:images_repository/images_repository.dart';
+import 'package:super_gallery_v2/gallery/view/view.dart';
 import 'package:super_gallery_v2/upload/upload.dart';
 
 class UploadPage extends StatelessWidget {
@@ -46,13 +48,16 @@ class _UploadView extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  SizedBox(
+                    height: size.height * 0.02,
+                  ),
                   _UploadForm(),
                   SizedBox(
-                    width: size.width * 0.04,
+                    height: size.height * 0.05,
                   ),
                   _BigImage(),
                   SizedBox(
-                    width: size.width * 0.04,
+                    height: size.height * 0.1,
                   ),
                   _UploadImages()
                 ],
@@ -62,7 +67,11 @@ class _UploadView extends StatelessWidget {
         ),
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.browse_gallery_rounded),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).push(
+              GalleryPage.route(),
+            );
+          },
         ),
       ),
     );
@@ -72,23 +81,38 @@ class _UploadView extends StatelessWidget {
 class _BigImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
     return BlocBuilder<UploadBloc, UploadState>(
-      buildWhen: (previous, current) => previous.status != current.status,
       builder: (context, state) {
         return state.status == UploadStatus.initial
             ? Container()
-            : Image(
-                image: NetworkImage(
-                  state.image,
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: CachedNetworkImage(
+                  key: UniqueKey(),
+                  imageUrl: state.image,
+                  fit: BoxFit.fitWidth,
+                  progressIndicatorBuilder: (context, url, progress) => Center(
+                    child: Container(
+                      width: width,
+                      height: width,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.grey,
+                      ),
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 3,
+                      ),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) {
+                    context.read<UploadBloc>().add(
+                          UploadFailureLoad(errorMessage: error.toString()),
+                        );
+                    return const SizedBox();
+                  },
                 ),
-                errorBuilder: (context, error, stackTrace) {
-                  context.read<UploadBloc>().add(
-                        UploadFailureLoad(
-                          errorMessage: error.toString(),
-                        ),
-                      );
-                  return const SizedBox();
-                },
               );
       },
     );
@@ -105,22 +129,46 @@ class _SmallImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return image.isEmpty
         ? Container(
             color: Colors.red,
             width: 9,
             height: 9,
           )
-        : GestureDetector(
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: Image.network(image),
+        : Padding(
+            padding: const EdgeInsets.all(8),
+            child: GestureDetector(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: CachedNetworkImage(
+                  key: UniqueKey(),
+                  imageUrl: image,
+                  fit: BoxFit.cover,
+                  width: size.height * 0.1,
+                  height: size.height * 0.1,
+                  progressIndicatorBuilder: (context, url, progress) =>
+                      const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                    ),
+                  ),
+                  errorWidget: (context, url, error) {
+                    context.read<UploadBloc>().add(
+                          UploadFailureLoad(errorMessage: error.toString()),
+                        );
+                    return const SizedBox();
+                  },
+                ),
+              ),
+              onTap: () => context
+                  .read<UploadBloc>()
+                  .add(UploadImageChanged(image: image)),
+              onLongPress: () => context
+                  .read<UploadBloc>()
+                  .add(UploadImageDelete(image: image)),
             ),
-            onTap: () => context
-                .read<UploadBloc>()
-                .add(UploadImageChanged(image: image)),
-            onLongPress: () =>
-                context.read<UploadBloc>().add(UploadImageDelete(image: image)),
           );
   }
 }
@@ -133,7 +181,9 @@ class _UploadForm extends StatelessWidget {
     return BlocBuilder<UploadBloc, UploadState>(
       builder: (context, state) {
         if (state.status == UploadStatus.saving) {
-          context.read<UploadBloc>().add(const UploadImageSaved());
+          context.read<UploadBloc>().add(
+                const UploadImageSaved(),
+              );
         }
 
         return TextField(
@@ -148,22 +198,10 @@ class _UploadForm extends StatelessWidget {
                       ),
                     );
                 _controller.clear();
-
-                await precacheImage(
-                  NetworkImage(
-                    _controller.text,
-                  ),
-                  context,
-                  onError: (exception, stackTrace) =>
-                      context.read<UploadBloc>().add(
-                            UploadFailureLoad(
-                              errorMessage: stackTrace.toString(),
-                            ),
-                          ),
-                );
               },
               icon: const Icon(Icons.save_alt_rounded),
             ),
+            enabled: state.urls.length < 5,
           ),
         );
       },
