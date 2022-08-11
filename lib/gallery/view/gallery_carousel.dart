@@ -1,9 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:images_repository/images_repository.dart';
-import 'package:super_gallery_v2/gallery/gallery.dart';
+import 'package:pinch_zoom/pinch_zoom.dart';
 
 class CarouselPage extends StatelessWidget {
   const CarouselPage({super.key});
@@ -37,12 +35,19 @@ class _CarouselView extends StatelessWidget {
       ),
       extendBodyBehindAppBar: true,
       body: SafeArea(
-        child: Swiper(
-          controller: _controller,
-          itemCount: images.length,
-          itemBuilder: (context, index) => CachedNetworkImage(
-            imageUrl: images[index],
-          ),
+        child: Column(
+          children: [
+            Swiper(
+              controller: _controller,
+              itemCount: images.length,
+              itemBuilder: (context, index) => PinchZoom(
+                child: CachedNetworkImage(
+                  imageUrl: images[index],
+                ),
+              ),
+              index: index,
+            ),
+          ],
         ),
       ),
     );
