@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:images_repository/images_repository.dart';
@@ -10,15 +12,23 @@ class GalleryCubit extends Cubit<GalleryState> {
   final ImagesRepository imagesRepository;
 
   Future<void> init() async {
+    print(state.images);
     emit(
       state.copyWith(
+        images: imagesRepository.getImages(),
         status: GalleryStatus.loading,
-        images: await imagesRepository.getImages(),
       ),
     );
+    print(state.images);
   }
 
   void imagesCached() {
     emit(state.copyWith(status: GalleryStatus.success));
+  }
+
+  void clear() {
+    emit(state.copyWith(status: GalleryStatus.loading));
+    imagesRepository.clear();
+    emit(const GalleryState());
   }
 }

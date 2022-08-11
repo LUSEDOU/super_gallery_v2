@@ -30,7 +30,7 @@ class LocalStorageImagesApi implements LocalStorageApi {
 
   /// Returns all values in the storage
   @override
-  dynamic getAll() => hiveBox.values.toList();
+  List<dynamic> getAll() => hiveBox.values.toList();
 
   /// If the storage contains the value
   @override

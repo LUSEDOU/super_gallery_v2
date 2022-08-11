@@ -12,6 +12,10 @@ class UploadPage extends StatelessWidget {
 
   static Page<void> page() => const MaterialPage<void>(child: UploadPage());
 
+  static Route<void> route() {
+    return MaterialPageRoute<void>(builder: (_) => const UploadPage());
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -66,12 +70,10 @@ class _UploadView extends StatelessWidget {
           ),
         ),
         floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.browse_gallery_rounded),
-          onPressed: () {
-            Navigator.of(context).push(
-              GalleryPage.route(),
-            );
-          },
+          child: const Icon(Icons.image),
+          onPressed: () => Navigator.of(context).push(
+            GalleryPage.route(),
+          ),
         ),
       ),
     );

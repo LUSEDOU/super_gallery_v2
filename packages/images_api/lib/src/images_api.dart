@@ -20,7 +20,7 @@ abstract class LocalStorageApi extends ImagesApi {
   dynamic get(String key);
 
   /// Get all values from the storage
-  dynamic getAll();
+  List<dynamic> getAll();
 
   /// Clear the storage
   Future<void> clear();

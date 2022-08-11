@@ -5,16 +5,19 @@ import 'package:images_api/images_api.dart';
 /// {@endtemplate}
 abstract class ImagesRepository {
   /// Get a list of images' urls
-  Future<List<String>> getImages();
+  List<String> getImages();
 
   /// Return a dynamic for a request from the [LocalStorageApi]
-  dynamic getFromCache();
+  List<dynamic> getFromCache();
 
   /// Delete a image from the [LocalStorageApi]
   Future<void> deleteImage(String image);
 
   /// Add a image to the [LocalStorageApi]
   Future<void> addImage(String image);
+
+  /// Clear the cache
+  void clear();
 }
 
 /// {@template cache_images_repository}
@@ -30,14 +33,14 @@ class CacheImagesRepository implements ImagesRepository {
   final LocalStorageApi localStorageApi;
 
   @override
-  Future<List<String>> getImages() async {
-    final images = await getFromCache();
+  List<String> getImages() {
+    final images = getFromCache().map((e) => e.toString()).toList();
 
-    return images as List<String>;
+    return images;
   }
 
   @override
-  dynamic getFromCache() {
+  List<dynamic> getFromCache() {
     return localStorageApi.getAll();
   }
 
@@ -49,5 +52,10 @@ class CacheImagesRepository implements ImagesRepository {
   @override
   Future<void> addImage(String image) async {
     await localStorageApi.write(image, image);
+  }
+
+  @override
+  void clear() {
+    localStorageApi.clear();
   }
 }

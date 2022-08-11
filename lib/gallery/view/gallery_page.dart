@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:images_repository/images_repository.dart';
 import 'package:super_gallery_v2/gallery/gallery.dart';
+import 'package:super_gallery_v2/upload/view/upload_page.dart';
 
 class GalleryPage extends StatelessWidget {
   const GalleryPage({super.key});
@@ -15,8 +17,8 @@ class GalleryPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => GalleryCubit(
         imagesRepository: context.read<CacheImagesRepository>(),
-      ),
-      child: Container(),
+      )..init(),
+      child: _GalleryView(),
     );
   }
 }
@@ -24,35 +26,30 @@ class GalleryPage extends StatelessWidget {
 class _GalleryView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    List<Card> _buildGridCards(int count) {
+    List<GestureDetector> _buildGridCards(List<String> urls) {
       final cards = List.generate(
-        count,
+        urls.length,
         (int index) {
-          return Card(
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                AspectRatio(
-                  aspectRatio: 18 / 11,
-                  child: Image.network(
-                    context.select(
-                      (GalleryCubit cubit) => cubit.state.images[index],
-                    ),
+          return GestureDetector(
+            onTap: () => Navigator.of(context).push(
+              CarouselPage.route(
+                index: index,
+                images: urls,
+              ),
+            ),
+            child: Card(
+              key: Key('CARD$index'),
+              clipBehavior: Clip.antiAlias,
+              child: CachedNetworkImage(
+                fit: BoxFit.cover,
+                imageUrl: urls[index],
+                progressIndicatorBuilder: (context, url, progress) =>
+                    const Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const <Widget>[
-                      Text('Title'),
-                      SizedBox(height: 8),
-                      Text('Secondary Text'),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           );
         },
@@ -61,19 +58,21 @@ class _GalleryView extends StatelessWidget {
     }
 
     return Scaffold(
+      appBar: AppBar(),
       body: SafeArea(
-        child: BlocListener<GalleryCubit, GalleryState>(
-          listener: (context, state) {
-            // TODO: implement listener
-          },
-          child: GridView.count(
-            crossAxisCount: 2,
-            padding: const EdgeInsets.all(16),
-            childAspectRatio: 8 / 9,
-            children: _buildGridCards(
-              context.select((GalleryCubit cubit) => cubit.state.images.length),
-            ),
+        child: GridView.count(
+          crossAxisCount: 2,
+          padding: const EdgeInsets.all(16),
+          childAspectRatio: 8 / 9,
+          children: _buildGridCards(
+            context.select((GalleryCubit cubit) => cubit.state.images),
           ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.download),
+        onPressed: () => Navigator.of(context).pop(
+          UploadPage.route(),
         ),
       ),
     );
